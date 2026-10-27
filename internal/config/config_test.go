@@ -70,3 +70,15 @@ hosts:
 		t.Fatal("missing default")
 	}
 }
+
+func TestValidationErrorsIdentifyLocation(t *testing.T) {
+	for _, text := range []string{
+		"version: 1\nunknown: sensitive\n",
+		"version: 1\nhosts:\n  api.example.com:\n    auth:\n      type: bearer\n",
+	} {
+		_, err := Parse(strings.NewReader(text))
+		if err == nil || !strings.Contains(err.Error(), "line ") || strings.Contains(err.Error(), "sensitive") {
+			t.Fatal("missing safe error location", err)
+		}
+	}
+}

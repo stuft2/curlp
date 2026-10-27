@@ -17,7 +17,7 @@ import (
 
 const MaxSize = 1 << 20
 
-var yamlLine = regexp.MustCompile(`(?:^|\n|yaml: )line ([0-9]+)`)
+var yamlLine = regexp.MustCompile(`(?:^|\n|yaml: )\s*line ([0-9]+)`)
 
 func yamlError(message string, err error) error {
 	if line := yamlLine.FindStringSubmatch(err.Error()); len(line) == 2 {
@@ -107,17 +107,29 @@ func Parse(r io.Reader) (Config, error) {
 	if c.Version != 1 {
 		return c, fmt.Errorf("configuration version must be 1")
 	}
+	hostLines := make(map[string]int)
+	if len(node.Content) > 0 {
+		root := node.Content[0]
+		for i := 0; i+1 < len(root.Content); i += 2 {
+			if root.Content[i].Value == "hosts" {
+				hosts := root.Content[i+1]
+				for j := 0; j+1 < len(hosts.Content); j += 2 {
+					hostLines[hosts.Content[j].Value] = hosts.Content[j].Line
+				}
+			}
+		}
+	}
 	normalized := make(map[string]Host, len(c.Hosts))
 	for name, h := range c.Hosts {
 		key := Hostname(name)
 		if !validHost(key) {
-			return c, fmt.Errorf("invalid host entry")
+			return c, fmt.Errorf("invalid host entry at line %d", hostLines[name])
 		}
 		if _, ok := normalized[key]; ok {
-			return c, fmt.Errorf("duplicate normalized hostname")
+			return c, fmt.Errorf("duplicate normalized hostname at line %d", hostLines[name])
 		}
 		if err := h.Auth.validate(); err != nil {
-			return c, fmt.Errorf("host authentication: %w", err)
+			return c, fmt.Errorf("host authentication at line %d: %w", hostLines[name], err)
 		}
 		normalized[key] = h
 	}
