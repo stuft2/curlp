@@ -80,10 +80,15 @@ go vet ./...
 
 CI runs formatting checks, `go vet`, race-enabled tests, and a build on pull
 requests and on `main` before release processing. Tests use temporary directories
-and local HTTP/TLS servers; no external API credentials are required. See [development notes](docs/development.md) for the
-vulnerability check and dependency review.
+and local HTTP/TLS servers; no external API credentials are required. See
+[development notes](docs/development.md) for the vulnerability check and dependency
+review.
 
 ## Security
 
 See the [security policy](SECURITY.md) for supported versions and private
 vulnerability reporting.
+
+## License
+
+[MIT](LICENSE) © 2026 Spencer Tuft.

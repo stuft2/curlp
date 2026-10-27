@@ -26,7 +26,7 @@ for target_os in darwin linux windows; do
       go build -trimpath \
         -ldflags "-s -w -X github.com/stuft2/httpp/internal/cli.Version=$release_tag" \
         -o "$package_dir/$binary_name" ./cmd/httpp
-    cp README.md "$package_dir/"
+    cp LICENSE README.md SECURITY.md "$package_dir/"
     cp -R docs examples "$package_dir/"
     if [[ "$target_os" == windows ]]; then
       archive_path="$PWD/dist/$archive_base.zip"

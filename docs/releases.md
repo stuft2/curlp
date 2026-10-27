@@ -36,8 +36,8 @@ the `0.x` series until a deliberate transition to 1.0 is configured.
 
 Artifacts cover macOS (`darwin`), Linux, and Windows on amd64 and arm64. Unix
 archives are `.tar.gz`; Windows archives are `.zip`. Each includes the binary,
-README, documentation, and example configuration. Windows retains v0's existing
-limitation: persistent OAuth token caching is disabled.
+MIT license, security policy, README, documentation, and example configuration.
+Windows retains v0's existing limitation: persistent OAuth token caching is disabled.
 
 The workflow uses the built-in `GITHUB_TOKEN`; no personal access token or external
 publishing credentials are required. Repository Settings > Actions > General >
