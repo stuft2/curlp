@@ -1,0 +1,24 @@
+version: 1
+hosts:
+  api.example.com:
+    auth:
+      type: oauth2-client-credentials
+      token_url: https://auth.example.com/oauth/token
+      client_id: my-client
+      client_secret:
+        env: EXAMPLE_CLIENT_SECRET
+      scopes: [read]
+      token_auth_method: client_secret_basic
+
+  downloads.example.com:
+    auth:
+      type: bearer
+      token:
+        command: [op, read, "op://Work/Downloads/token"]
+
+  legacy.example.com:
+    auth:
+      type: basic
+      username: stuft2
+      password:
+        env: LEGACY_PASSWORD
