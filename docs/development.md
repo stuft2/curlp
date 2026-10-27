@@ -31,8 +31,10 @@ Unstamped builds report `v0-dev`. A version can be supplied at build time:
 go build -ldflags '-X github.com/stuft2/httpp/internal/cli.Version=v0.0.0' -o httpp ./cmd/httpp
 ```
 
-This does not create or publish a release. No CI or release workflow is configured
-in v0.
+Local builds do not create or publish a release. GitHub Actions runs lint, test,
+and build checks on pull requests and `main`; Release Please manages versioning
+and release PRs. See [release instructions](releases.md) for the automated flow,
+local archive builds, and asset recovery.
 
 ## YAML dependency review
 
