@@ -59,8 +59,9 @@ go install github.com/stuft2/httpp/cmd/httpp@main
 
 ## How to Publish
 
-No tagged release or automated distribution process is established yet. See
-[development notes](docs/development.md) for validation and version stamping.
+Release Please opens a version/changelog PR from Conventional Commits on `main`.
+Merging that PR creates a GitHub release with binaries and checksums for macOS,
+Linux, and Windows (amd64 and arm64). See [release instructions](docs/releases.md).
 
 ## Architectural Overview
 
@@ -77,6 +78,17 @@ go test -race ./...
 go vet ./...
 ```
 
-Tests use temporary directories and local HTTP/TLS servers; no external API
-credentials are required. See [development notes](docs/development.md) for the
-vulnerability check and dependency review.
+CI runs formatting checks, `go vet`, race-enabled tests, and a build on pull
+requests and on `main` before release processing. Tests use temporary directories
+and local HTTP/TLS servers; no external API credentials are required. See
+[development notes](docs/development.md) for the vulnerability check and dependency
+review.
+
+## Security
+
+See the [security policy](SECURITY.md) for supported versions and private
+vulnerability reporting.
+
+## License
+
+[MIT](LICENSE) © 2026 Spencer Tuft.
