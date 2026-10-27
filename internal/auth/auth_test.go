@@ -52,7 +52,7 @@ func TestOAuthAcquisitionAndCache(t *testing.T) {
 			}))
 			defer server.Close()
 			cache := testCache(t)
-			a := config.Auth{Type: "oauth2-client-credentials", TokenURL: server.URL, ClientID: "app +:", ClientSecret: config.Secret{Env: "CLIENT_SECRET"}, Scopes: []string{"read", "write"}, TokenAuthMethod: method}
+			a := config.Auth{Type: "oauth2-client-credentials", TokenURL: server.URL, ClientID: config.Secret{Literal: "app +:"}, ClientSecret: config.Secret{Env: "CLIENT_SECRET"}, Scopes: []string{"read", "write"}, TokenAuthMethod: method}
 			p := Provider{Client: server.Client(), Cache: cache}
 			for range 2 {
 				req, _ := http.NewRequest("GET", "https://api.example/users", nil)
@@ -110,7 +110,7 @@ func TestOAuthFailureAndExpiryResponses(t *testing.T) {
 			server := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { w.WriteHeader(tc.status); fmt.Fprint(w, tc.body) }))
 			defer server.Close()
 			cache := testCache(t)
-			a := config.Auth{Type: "oauth2-client-credentials", TokenURL: server.URL, ClientID: "app", ClientSecret: config.Secret{Env: "SECRET"}}
+			a := config.Auth{Type: "oauth2-client-credentials", TokenURL: server.URL, ClientID: config.Secret{Literal: "app"}, ClientSecret: config.Secret{Env: "SECRET"}}
 			_, err := (Provider{Client: server.Client(), Cache: cache}).token(context.Background(), "example.com", a)
 			if (err != nil) != tc.wantErr {
 				t.Fatalf("error = %v", err)
@@ -132,7 +132,7 @@ func TestTokenEndpointRedirectDoesNotForwardCredentials(t *testing.T) {
 	source := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { http.Redirect(w, r, dest.URL, 302) }))
 	defer source.Close()
 	t.Setenv("SECRET", "secret")
-	a := config.Auth{TokenURL: source.URL, ClientID: "app", ClientSecret: config.Secret{Env: "SECRET"}}
+	a := config.Auth{TokenURL: source.URL, ClientID: config.Secret{Literal: "app"}, ClientSecret: config.Secret{Env: "SECRET"}}
 	_, err := (Provider{Client: source.Client(), Cache: testCache(t)}).token(context.Background(), "example.com", a)
 	if err == nil || hits.Load() != 0 {
 		t.Fatal("token endpoint redirect followed")
@@ -274,6 +274,9 @@ func TestCredentialHelper(t *testing.T) {
 	case "fail":
 		fmt.Fprint(os.Stderr, "sensitive")
 		os.Exit(1)
+	case "env":
+		fmt.Print(os.Getenv("RESOLVED_ID"))
+		os.Exit(0)
 	case "wait":
 		time.Sleep(time.Minute)
 		os.Exit(0)
@@ -301,7 +304,7 @@ func TestUnsafeCacheDirectoryAndWriteFailure(t *testing.T) {
 	}
 	warnings := 0
 	c.Warn = func(string) { warnings++ }
-	a := config.Auth{TokenURL: server.URL, ClientID: "app", ClientSecret: config.Secret{Env: "SECRET"}}
+	a := config.Auth{TokenURL: server.URL, ClientID: config.Secret{Literal: "app"}, ClientSecret: config.Secret{Env: "SECRET"}}
 	token, err := (Provider{Client: server.Client(), Cache: c}).token(context.Background(), "example.com", a)
 	if err != nil || token != "usable-token" || warnings == 0 || hits.Load() != 1 {
 		t.Fatal("cache failure disrupted request", err, warnings)
@@ -312,5 +315,125 @@ func TestUnsafeCacheDirectoryAndWriteFailure(t *testing.T) {
 	}
 	if err := c.Clear(); err == nil {
 		t.Fatal("clear accepted unsafe directory")
+	}
+}
+
+func TestOAuthClientIDReferences(t *testing.T) {
+	exe, err := os.Executable()
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, method := range []string{"client_secret_basic", "client_secret_post"} {
+		for _, source := range []string{"env", "command"} {
+			t.Run(method+"/"+source, func(t *testing.T) {
+				t.Setenv("HTTPP_TEST_HELPER", "1")
+				t.Setenv("RESOLVED_ID", "source app+:")
+				t.Setenv("CLIENT_SECRET", "client-secret")
+				ref := config.Secret{Env: "RESOLVED_ID"}
+				if source == "command" {
+					ref = config.Secret{Command: []string{exe, "-test.run=^TestCredentialHelper$", "--", "env"}}
+				}
+				var calls atomic.Int32
+				server := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+					calls.Add(1)
+					if err := r.ParseForm(); err != nil {
+						t.Error(err)
+					}
+					if method == "client_secret_post" {
+						if r.Form.Get("client_id") != "source app+:" || r.Form.Get("client_secret") != "client-secret" {
+							t.Error("incorrect form credentials")
+						}
+					} else {
+						id, secret, ok := r.BasicAuth()
+						if !ok || id != url.QueryEscape("source app+:") || secret != url.QueryEscape("client-secret") {
+							t.Error("incorrect Basic credentials")
+						}
+					}
+					fmt.Fprint(w, `{"access_token":"cached-token","token_type":"Bearer","expires_in":3600}`)
+				}))
+				defer server.Close()
+				cache := testCache(t)
+				a := config.Auth{Type: "oauth2-client-credentials", TokenURL: server.URL, ClientID: ref, ClientSecret: config.Secret{Env: "CLIENT_SECRET"}, TokenAuthMethod: method}
+				provider := Provider{Client: server.Client(), Cache: cache}
+				for i := 0; i < 2; i++ {
+					req, _ := http.NewRequest("GET", "https://api.example.com", nil)
+					if err := provider.Apply(context.Background(), req, a); err != nil {
+						t.Fatal(err)
+					}
+					if req.Header.Get("Authorization") != "Bearer cached-token" {
+						t.Fatal("missing access token")
+					}
+					// Cache hits must not resolve either source again, even if unavailable.
+					t.Setenv("RESOLVED_ID", "")
+					t.Setenv("CLIENT_SECRET", "")
+				}
+				if calls.Load() != 1 {
+					t.Fatal("token not reused")
+				}
+				for _, text := range []string{"source app+:", "client-secret"} {
+					b, err := os.ReadFile(filepath.Join(cache.Dir, cacheKey("api.example.com", a)+".json"))
+					if err != nil {
+						t.Fatal(err)
+					}
+					if strings.Contains(string(b), text) {
+						t.Fatal("resolved credentials persisted")
+					}
+				}
+			})
+		}
+	}
+}
+
+func TestOAuthLiteralClientSecret(t *testing.T) {
+	for _, method := range []string{"client_secret_basic", "client_secret_post"} {
+		t.Run(method, func(t *testing.T) {
+			server := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				if method == "client_secret_post" {
+					if err := r.ParseForm(); err != nil {
+						t.Error(err)
+					}
+					if r.Form.Get("client_id") != "literal-id" || r.Form.Get("client_secret") != "literal-secret" {
+						t.Error("incorrect literal form credentials")
+					}
+				} else {
+					id, secret, ok := r.BasicAuth()
+					if !ok || id != "literal-id" || secret != "literal-secret" {
+						t.Error("incorrect literal Basic credentials")
+					}
+				}
+				fmt.Fprint(w, `{"access_token":"access-token","token_type":"Bearer","expires_in":3600}`)
+			}))
+			defer server.Close()
+			a := config.Auth{TokenURL: server.URL, ClientID: config.Secret{Literal: "literal-id"}, ClientSecret: config.Secret{Literal: "literal-secret"}, TokenAuthMethod: method}
+			cache := testCache(t)
+			if _, err := (Provider{Client: server.Client(), Cache: cache}).token(context.Background(), "api.example.com", a); err != nil {
+				t.Fatal(err)
+			}
+			b, err := os.ReadFile(filepath.Join(cache.Dir, cacheKey("api.example.com", a)+".json"))
+			if err != nil {
+				t.Fatal(err)
+			}
+			if strings.Contains(string(b), "literal-secret") || strings.Contains(string(b), "literal-id") {
+				t.Fatal("literal credentials persisted in token cache")
+			}
+		})
+	}
+	for _, a := range []config.Auth{
+		{Type: "bearer", Token: config.Secret{Literal: "literal-token"}},
+		{Type: "basic", Username: "user", Password: config.Secret{Literal: "literal-password"}},
+	} {
+		req, _ := http.NewRequest("GET", "https://api.example.com", nil)
+		if err := (Provider{}).Apply(context.Background(), req, a); err != nil {
+			t.Fatal(err)
+		}
+		if a.Type == "bearer" && req.Header.Get("Authorization") != "Bearer literal-token" {
+			t.Fatal("incorrect literal bearer")
+		}
+		if a.Type == "basic" {
+			u, p, ok := req.BasicAuth()
+			if !ok || u != "user" || p != "literal-password" {
+				t.Fatal("incorrect literal basic")
+			}
+		}
 	}
 }

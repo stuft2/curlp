@@ -65,6 +65,10 @@ func (p Provider) token(ctx context.Context, host string, a config.Auth) (string
 	if token, ok := p.Cache.load(key, time.Now()); ok && validToken(token) {
 		return token, nil
 	}
+	clientID, err := Resolve(ctx, a.ClientID)
+	if err != nil {
+		return "", fmt.Errorf("resolve OAuth client ID: %w", err)
+	}
 	secret, err := Resolve(ctx, a.ClientSecret)
 	if err != nil {
 		return "", err
@@ -74,7 +78,7 @@ func (p Provider) token(ctx context.Context, host string, a config.Auth) (string
 		form.Set("scope", strings.Join(a.Scopes, " "))
 	}
 	if a.TokenAuthMethod == "client_secret_post" {
-		form.Set("client_id", a.ClientID)
+		form.Set("client_id", clientID)
 		form.Set("client_secret", secret)
 	}
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, a.TokenURL, strings.NewReader(form.Encode()))
@@ -87,7 +91,7 @@ func (p Provider) token(ctx context.Context, host string, a config.Auth) (string
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Set("Accept", "application/json")
 	if a.TokenAuthMethod != "client_secret_post" {
-		req.SetBasicAuth(url.QueryEscape(a.ClientID), url.QueryEscape(secret))
+		req.SetBasicAuth(url.QueryEscape(clientID), url.QueryEscape(secret))
 	}
 	client := http.Client{Timeout: 30 * time.Second}
 	if p.Client != nil {

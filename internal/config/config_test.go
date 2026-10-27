@@ -32,7 +32,7 @@ func TestRejectInvalidConfig(t *testing.T) {
 		"multi document":       "version: 1\nhosts: {}\n---\nversion: 1",
 		"version":              "version: 2",
 		"malformed":            "version: 1\nhosts: [sensitive",
-		"inline secret":        "version: 1\nhosts: {example.com: {auth: {type: bearer, token: sensitive}}}",
+		"numeric secret":       "version: 1\nhosts: {example.com: {auth: {type: bearer, token: 123}}}",
 		"mixed source":         "version: 1\nhosts: {example.com: {auth: {type: bearer, token: {env: X, command: [echo, sensitive]}}}}",
 		"mixed auth":           "version: 1\nhosts: {example.com: {auth: {type: bearer, token: {env: X}, username: sensitive}}}",
 		"empty command":        "version: 1\nhosts: {example.com: {auth: {type: bearer, token: {command: []}}}}",
@@ -79,6 +79,52 @@ func TestValidationErrorsIdentifyLocation(t *testing.T) {
 		_, err := Parse(strings.NewReader(text))
 		if err == nil || !strings.Contains(err.Error(), "line ") || strings.Contains(err.Error(), "sensitive") {
 			t.Fatal("missing safe error location", err)
+		}
+	}
+}
+
+func TestClientIDSources(t *testing.T) {
+	for _, tc := range []struct {
+		name, value string
+		valid       bool
+	}{
+		{"literal", `my-client`, true},
+		{"environment", `{env: CLIENT_ID}`, true},
+		{"command", `{command: [pass-cli, item, view, --field, API Key]}`, true},
+		{"empty", `''`, false},
+		{"empty reference", `{}`, false},
+		{"empty command", `{command: []}`, false},
+		{"mixed reference", `{env: CLIENT_ID, command: [echo, x]}`, false},
+		{"unknown field", `{env: CLIENT_ID, unknown: sensitive}`, false},
+		{"nested unknown field", `{command: {unknown: sensitive}}`, false},
+		{"sequence", `[sensitive]`, false},
+		{"numeric", `123`, false},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			text := "version: 1\nhosts:\n  api.example.com:\n    auth:\n      type: oauth2-client-credentials\n      token_url: https://api.example.com/token\n      client_id: " + tc.value + "\n      client_secret: {env: SECRET}\n"
+			c, err := Parse(strings.NewReader(text))
+			if (err == nil) != tc.valid {
+				t.Fatalf("valid = %v, error = %v", tc.valid, err)
+			}
+			if err != nil && strings.Contains(err.Error(), "sensitive") {
+				t.Fatal("error exposed configuration")
+			}
+			if tc.name == "literal" && c.Hosts["api.example.com"].Auth.ClientID.Literal != "my-client" {
+				t.Fatal("literal ID compatibility lost")
+			}
+		})
+	}
+}
+
+func TestLiteralSecrets(t *testing.T) {
+	for _, settings := range []string{
+		"type: bearer\n      token: literal-token",
+		"type: basic\n      username: user\n      password: 'literal-password'",
+		"type: oauth2-client-credentials\n      token_url: https://example.com/token\n      client_id: app\n      client_secret: 'literal-secret'",
+	} {
+		_, err := Parse(strings.NewReader("version: 1\nhosts:\n  example.com:\n    auth:\n      " + settings + "\n"))
+		if err != nil {
+			t.Fatal("literal secret rejected", err)
 		}
 	}
 }
