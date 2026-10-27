@@ -8,6 +8,47 @@ Basic authentication, and OAuth2 client credentials with a persistent token cach
 
 **Status:** v0 development. The configuration and command interface may change.
 
+## Installation
+
+### Prebuilt binaries (no Go required)
+
+Download the archive matching your operating system and CPU from the
+[latest release](https://github.com/stuft2/httpp/releases/latest). Releases include
+macOS, Linux, and Windows binaries for amd64 (Intel/AMD) and arm64 (including
+Apple Silicon).
+
+On macOS or Linux, extract the `.tar.gz` archive, then run these commands from the
+extracted directory:
+
+```sh
+mkdir -p "$HOME/.local/bin"
+install -m 0755 httpp "$HOME/.local/bin/httpp"
+export PATH="$HOME/.local/bin:$PATH"
+httpp --version
+```
+
+Add that `export PATH` line to your shell startup file to keep it available in new
+terminals. On Windows, extract the `.zip` and add the folder containing
+`httpp.exe` to your user `Path`.
+
+See the [installation guide](docs/installation.md) for platform selection,
+download commands, checksum verification, and Windows setup.
+
+### With Go
+
+Requires Go 1.27 or newer:
+
+```sh
+go install github.com/stuft2/httpp/cmd/httpp@latest
+httpp_bin="$(go env GOBIN)"
+export PATH="${httpp_bin:-$(go env GOPATH)/bin}:$PATH"
+httpp --help
+```
+
+Go installs to `GOBIN` when configured, otherwise to the `bin` directory under
+`GOPATH`; make sure that directory is on your `PATH`. Use `@main` instead of
+`@latest` to install the current development branch.
+
 ## How to Use This
 
 ```sh
@@ -49,12 +90,6 @@ git clone git@github.com:stuft2/httpp.git
 cd httpp
 go build -o httpp ./cmd/httpp
 ./httpp --help
-```
-
-Alternatively, install the current main branch:
-
-```sh
-go install github.com/stuft2/httpp/cmd/httpp@main
 ```
 
 ## How to Publish
