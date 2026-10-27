@@ -30,8 +30,9 @@ hosts:
         env: EXAMPLE_API_TOKEN
 ```
 
-Secrets come from environment variables or external commands, rather than literal
-values in the file. See [configuration and authentication](docs/configuration.md)
+Secrets can come from environment variables, external commands, or literal YAML
+strings. Environment variables and commands are recommended. See
+[configuration and authentication](docs/configuration.md)
 and the [example configuration](examples/config.yaml) for all three auth methods.
 
 Use `httpp --help` for options and `httpp cache clear` to discard cached OAuth

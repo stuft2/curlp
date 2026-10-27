@@ -24,7 +24,9 @@ func (b *limitedBuffer) Write(p []byte) (int, error) {
 }
 func Resolve(ctx context.Context, s config.Secret) (string, error) {
 	var value string
-	if s.Env != "" {
+	if s.Literal != "" {
+		value = s.Literal
+	} else if s.Env != "" {
 		value = os.Getenv(s.Env)
 	} else {
 		if len(s.Command) == 0 {

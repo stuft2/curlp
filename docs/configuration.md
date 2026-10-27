@@ -18,9 +18,9 @@ mapping with one of these types:
 
 | Type | Required fields | Optional fields |
 | --- | --- | --- |
-| `bearer` | `token` secret reference | None |
-| `basic` | `username`, `password` secret reference | None |
-| `oauth2-client-credentials` | `token_url`, `client_id`, `client_secret` secret reference | `scopes`, `token_auth_method` |
+| `bearer` | `token` | None |
+| `basic` | `username`, `password` | None |
+| `oauth2-client-credentials` | `token_url`, `client_id`, `client_secret` | `scopes`, `token_auth_method` |
 
 The parser rejects unknown fields, mixed auth settings, aliases, anchors, custom
 YAML tags, and multiple documents. Configuration is limited to 1 MiB and 32
@@ -28,7 +28,10 @@ nesting levels. Quote numeric identifiers so YAML treats them as strings.
 
 ## Credential sources
 
-A secret reference contains exactly one source:
+`client_id`, `client_secret`, `token`, and `password` accept either a literal YAML
+string or an `env` / `command` reference. Environment variables and commands are
+recommended for secrets so their values stay outside the configuration file.
+A reference contains exactly one source:
 
 ```yaml
 token:
@@ -48,7 +51,30 @@ when needed. Only put commands you trust in your configuration file.
 Command stdout is the credential. Trailing CR/LF characters are removed; an empty
 credential fails. Commands have a ten-second timeout (or the remaining overall
 timeout if shorter) and a 64 KiB stdout limit. Captured stdout and stderr are not
-included in diagnostics. Credential values cannot be written inline in YAML.
+included in diagnostics. Literal secrets are supported but not recommended:
+
+```yaml
+client_id: my-client
+client_secret: "example-only-secret"
+```
+
+This stores the secret as plaintext in the configuration file. Keep that file
+private and out of source control. Empty strings are rejected; quote numeric
+values so YAML treats them as strings.
+
+For example, retrieve both client credentials from a password manager:
+
+```yaml
+client_id:
+  command: [pass-cli, item, view, --vault-name, Work, --item-title, Example API, --field, API Key, --output, human]
+client_secret:
+  command: [pass-cli, item, view, --vault-name, Work, --item-title, Example API, --field, Secret, --output, human]
+```
+
+Both commands run only when a new OAuth token is needed. Literal client IDs such
+as `client_id: my-client` remain supported. Neither resolved client IDs nor client
+secrets are written to the token cache. Password-manager fields and executable
+names are examples; match them to your local installation and vault entries.
 
 ## OAuth2 client credentials
 
@@ -94,8 +120,8 @@ need the cache to remain empty.
 httpp cache clear
 ```
 
-Clear the cache after rotating client credentials: changing a credential value
-behind the same environment variable or command does not change its cache key.
+Clear the cache after rotating client credentials, including command-backed client
+IDs: changing a credential value behind the same environment variable or command does not change its cache key.
 A 401 response does not automatically refresh the token or replay the request.
 
 ## Request behavior

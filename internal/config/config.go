@@ -27,6 +27,7 @@ func yamlError(message string, err error) error {
 }
 
 type Secret struct {
+	Literal string   `json:"literal,omitempty"`
 	Env     string   `yaml:"env" json:"env,omitempty"`
 	Command []string `yaml:"command" json:"command,omitempty"`
 }
@@ -36,7 +37,7 @@ type Auth struct {
 	Username        string   `yaml:"username" json:"username,omitempty"`
 	Password        Secret   `yaml:"password" json:"password,omitempty"`
 	TokenURL        string   `yaml:"token_url" json:"token_url,omitempty"`
-	ClientID        string   `yaml:"client_id" json:"client_id,omitempty"`
+	ClientID        Secret   `yaml:"client_id" json:"client_id,omitempty"`
 	ClientSecret    Secret   `yaml:"client_secret" json:"client_secret,omitempty"`
 	Scopes          []string `yaml:"scopes" json:"scopes,omitempty"`
 	TokenAuthMethod string   `yaml:"token_auth_method" json:"token_auth_method,omitempty"`
@@ -186,23 +187,36 @@ func validHost(s string) bool {
 	}
 	return true
 }
-func (s Secret) present() bool { return s.Env != "" || s.Command != nil }
+func (s Secret) present() bool { return s.Literal != "" || s.Env != "" || s.Command != nil }
 func (s Secret) valid() bool {
-	return (s.Env != "" && s.Command == nil) || (s.Env == "" && len(s.Command) > 0 && s.Command[0] != "")
+	sources := 0
+	if s.Literal != "" {
+		sources++
+	}
+	if s.Env != "" {
+		sources++
+	}
+	if s.Command != nil {
+		sources++
+		if len(s.Command) == 0 || s.Command[0] == "" {
+			return false
+		}
+	}
+	return sources == 1
 }
 func (a *Auth) validate() error {
 	switch a.Type {
 	case "bearer":
 		if !a.Token.valid() || a.Username != "" || a.Password.present() || a.hasOAuth() {
-			return fmt.Errorf("bearer requires only a token reference")
+			return fmt.Errorf("bearer requires only a token")
 		}
 	case "basic":
 		if a.Username == "" || strings.Contains(a.Username, ":") || !a.Password.valid() || a.Token.present() || a.hasOAuth() {
-			return fmt.Errorf("basic requires a username and password reference")
+			return fmt.Errorf("basic requires a username and password")
 		}
 	case "oauth2-client-credentials":
-		if a.ClientID == "" || !a.ClientSecret.valid() || a.Token.present() || a.Username != "" || a.Password.present() {
-			return fmt.Errorf("OAuth requires client_id and client_secret reference")
+		if !a.ClientID.valid() || !a.ClientSecret.valid() || a.Token.present() || a.Username != "" || a.Password.present() {
+			return fmt.Errorf("OAuth requires client_id and client_secret")
 		}
 		u, err := url.Parse(a.TokenURL)
 		if err != nil || u.Scheme != "https" || u.Hostname() == "" || u.User != nil || u.Fragment != "" {
@@ -230,5 +244,5 @@ func (a *Auth) validate() error {
 	return nil
 }
 func (a Auth) hasOAuth() bool {
-	return a.TokenURL != "" || a.ClientID != "" || a.ClientSecret.present() || a.Scopes != nil || a.TokenAuthMethod != ""
+	return a.TokenURL != "" || a.ClientID.present() || a.ClientSecret.present() || a.Scopes != nil || a.TokenAuthMethod != ""
 }
