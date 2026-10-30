@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.2.0](https://github.com/stuft2/knok/compare/v0.1.0...v0.2.0) (2026-10-30)
+
+
+### ⚠ BREAKING CHANGES
+
+* rename httpp to knok ([#9](https://github.com/stuft2/knok/issues/9))
+
+### Code Refactoring
+
+* rename httpp to knok ([#9](https://github.com/stuft2/knok/issues/9)) ([c6da8e2](https://github.com/stuft2/knok/commit/c6da8e25c176c36929caa1762e39adaa86c65862))
+
 ## 0.1.0 (2026-10-27)
 
 
