@@ -15,17 +15,17 @@ archives=()
 
 for target_os in darwin linux windows; do
   for target_arch in amd64 arm64; do
-    archive_base="httpp_${release_tag}_${target_os}_${target_arch}"
+    archive_base="knok_${release_tag}_${target_os}_${target_arch}"
     package_dir="$staging_dir/$archive_base"
     mkdir -p "$package_dir"
-    binary_name=httpp
+    binary_name=knok
     if [[ "$target_os" == windows ]]; then
-      binary_name=httpp.exe
+      binary_name=knok.exe
     fi
     CGO_ENABLED=0 GOOS="$target_os" GOARCH="$target_arch" \
       go build -trimpath \
-        -ldflags "-s -w -X github.com/stuft2/httpp/internal/cli.Version=$release_tag" \
-        -o "$package_dir/$binary_name" ./cmd/httpp
+        -ldflags "-s -w -X github.com/stuft2/knok/internal/cli.Version=$release_tag" \
+        -o "$package_dir/$binary_name" ./cmd/knok
     cp LICENSE README.md SECURITY.md "$package_dir/"
     cp -R docs examples "$package_dir/"
     if [[ "$target_os" == windows ]]; then

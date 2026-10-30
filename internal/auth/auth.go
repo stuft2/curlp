@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/stuft2/httpp/internal/config"
+	"github.com/stuft2/knok/internal/config"
 )
 
 type Provider struct {

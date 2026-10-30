@@ -1,8 +1,8 @@
-# httpp
+# knok
 
 ## Overview
 
-httpp is an HTTP command-line client with authentication selected automatically
+knok is an HTTP command-line client with authentication selected automatically
 from exact-host entries in a YAML configuration file. It supports Bearer tokens,
 Basic authentication, and OAuth2 client credentials with a persistent token cache.
 
@@ -13,7 +13,7 @@ Basic authentication, and OAuth2 client credentials with a persistent token cach
 ### Prebuilt binaries (no Go required)
 
 Download the archive matching your operating system and CPU from the
-[latest release](https://github.com/stuft2/httpp/releases/latest). Releases include
+[latest release](https://github.com/stuft2/knok/releases/latest). Releases include
 macOS, Linux, and Windows binaries for amd64 (Intel/AMD) and arm64 (including
 Apple Silicon).
 
@@ -22,14 +22,14 @@ extracted directory:
 
 ```sh
 mkdir -p "$HOME/.local/bin"
-install -m 0755 httpp "$HOME/.local/bin/httpp"
+install -m 0755 knok "$HOME/.local/bin/knok"
 export PATH="$HOME/.local/bin:$PATH"
-httpp --version
+knok --version
 ```
 
 Add that `export PATH` line to your shell startup file to keep it available in new
 terminals. On Windows, extract the `.zip` and add the folder containing
-`httpp.exe` to your user `Path`.
+`knok.exe` to your user `Path`.
 
 See the [installation guide](docs/installation.md) for platform selection,
 download commands, checksum verification, and Windows setup.
@@ -39,10 +39,10 @@ download commands, checksum verification, and Windows setup.
 Requires Go 1.27 or newer:
 
 ```sh
-go install github.com/stuft2/httpp/cmd/httpp@latest
-httpp_bin="$(go env GOBIN)"
-export PATH="${httpp_bin:-$(go env GOPATH)/bin}:$PATH"
-httpp --help
+go install github.com/stuft2/knok/cmd/knok@latest
+knok_bin="$(go env GOBIN)"
+export PATH="${knok_bin:-$(go env GOPATH)/bin}:$PATH"
+knok --help
 ```
 
 Go installs to `GOBIN` when configured, otherwise to the `bin` directory under
@@ -52,14 +52,14 @@ Go installs to `GOBIN` when configured, otherwise to the `bin` directory under
 ## How to Use This
 
 ```sh
-httpp https://api.example.com/users
-httpp -X POST -H 'Content-Type: application/json' -d '{"name":"Sam"}' https://api.example.com/users
-httpp --location --include https://example.com
-httpp -d @payload.json --output response.json https://api.example.com/users
+knok https://api.example.com/users
+knok -X POST -H 'Content-Type: application/json' -d '{"name":"Sam"}' https://api.example.com/users
+knok --location --include https://example.com
+knok -d @payload.json --output response.json https://api.example.com/users
 ```
 
-Put authentication settings in `~/.config/httpp/config.yaml` (or
-`$XDG_CONFIG_HOME/httpp/config.yaml`):
+Put authentication settings in `~/.config/knok/config.yaml` (or
+`$XDG_CONFIG_HOME/knok/config.yaml`):
 
 ```yaml
 version: 1
@@ -76,7 +76,7 @@ strings. Environment variables and commands are recommended. See
 [configuration and authentication](docs/configuration.md)
 and the [example configuration](examples/config.yaml) for all three auth methods.
 
-Use `httpp --help` for options and `httpp cache clear` to discard cached OAuth
+Use `knok --help` for options and `knok cache clear` to discard cached OAuth
 tokens. Response bodies go to stdout; diagnostics go to stderr. Completed HTTP
 responses, including 4xx and 5xx, exit successfully. Runtime failures exit 1;
 invalid arguments or configuration exit 2.
@@ -86,10 +86,10 @@ invalid arguments or configuration exit 2.
 Requires Go 1.27 or newer.
 
 ```sh
-git clone git@github.com:stuft2/httpp.git
-cd httpp
-go build -o httpp ./cmd/httpp
-./httpp --help
+git clone git@github.com:stuft2/knok.git
+cd knok
+go build -o knok ./cmd/knok
+./knok --help
 ```
 
 ## How to Publish

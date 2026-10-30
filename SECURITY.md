@@ -18,13 +18,13 @@ Development versions may change without compatibility guarantees.
 ## Reporting a Vulnerability
 
 Report suspected vulnerabilities privately through
-[GitHub's Report a vulnerability form](https://github.com/stuft2/httpp/security/advisories/new).
+[GitHub's Report a vulnerability form](https://github.com/stuft2/knok/security/advisories/new).
 You can also find this under **Security > Advisories > Report a vulnerability**.
 Please do not open a public issue for an undisclosed vulnerability.
 
 Include:
 
-- Affected httpp version or commit, operating system, and architecture.
+- Affected knok version or commit, operating system, and architecture.
 - A description of the vulnerability, its impact, and any prerequisites.
 - Reproduction steps or a minimal proof of concept.
 - Relevant configuration or logs with tokens, passwords, client secrets, and

@@ -2,7 +2,7 @@
 
 ## Location and matching
 
-httpp reads `~/.config/httpp/config.yaml`. An absolute `XDG_CONFIG_HOME` changes
+knok reads `~/.config/knok/config.yaml`. An absolute `XDG_CONFIG_HOME` changes
 the base directory; `--config FILE` selects a specific file. A missing default
 file permits unauthenticated requests. A missing explicit file, malformed file,
 or invalid entry is an error, including when `--no-auth` is used.
@@ -43,7 +43,7 @@ client_secret:
   command: [op, read, "op://Work/Example/client-secret"]
 ```
 
-Environment variables are read from httpp's environment. Commands run as an
+Environment variables are read from knok's environment. Commands run as an
 executable and argument array, inherit the environment, and have no stdin. There
 is no shell, variable expansion, or tilde expansion. Use a full executable path
 when needed. Only put commands you trust in your configuration file.
@@ -78,7 +78,7 @@ names are examples; match them to your local installation and vault entries.
 
 ## OAuth2 client credentials
 
-`token_url` must be an HTTPS endpoint without URL userinfo or a fragment. httpp
+`token_url` must be an HTTPS endpoint without URL userinfo or a fragment. knok
 sends a form-encoded POST with `grant_type=client_credentials` and optional
 space-separated `scopes`. Client authentication defaults to
 `client_secret_basic`, including OAuth's encoding of the client ID and secret.
@@ -93,10 +93,10 @@ No refresh-token or browser authorization flows are supported.
 
 ## Token cache
 
-Tokens are stored under `httpp/tokens` in Go's user cache directory:
+Tokens are stored under `knok/tokens` in Go's user cache directory:
 
-- macOS: `~/Library/Caches/httpp/tokens`.
-- Linux: `$XDG_CACHE_HOME/httpp/tokens`, defaulting to `~/.cache/httpp/tokens`.
+- macOS: `~/Library/Caches/knok/tokens`.
+- Linux: `$XDG_CACHE_HOME/knok/tokens`, defaulting to `~/.cache/knok/tokens`.
 
 Cache keys cover the resource hostname and the OAuth configuration, including
 credential source references. They do not contain credential values. Stored
@@ -117,7 +117,7 @@ with in-flight token acquisition; stop running requests before clearing if you
 need the cache to remain empty.
 
 ```sh
-httpp cache clear
+knok cache clear
 ```
 
 Clear the cache after rotating client credentials, including command-backed client
@@ -143,7 +143,7 @@ Go's transport can retry eligible requests on reused connections.
 
 `-d` defaults the method to POST; otherwise it defaults to GET. `-X` overrides
 that choice. Data is literal text, `@file`, or `@-` for stdin. Supply headers such
-as `Content-Type` explicitly; httpp does not infer JSON or form encoding for
+as `Content-Type` explicitly; knok does not infer JSON or form encoding for
 resource requests. Multiple `-d` arguments are rejected.
 
 A literal body can be replayed for a same-origin 307/308 redirect. File and stdin

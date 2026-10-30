@@ -8,7 +8,7 @@ Requires Go 1.27 or newer. From the repository root:
 gofmt -l cmd internal
 go vet ./...
 go test -race ./...
-go build -o httpp ./cmd/httpp
+go build -o knok ./cmd/knok
 ```
 
 The tests use local HTTP/TLS servers, controlled environment variables, subprocess
@@ -28,7 +28,7 @@ govulncheck ./...
 Unstamped builds report `v0-dev`. A version can be supplied at build time:
 
 ```sh
-go build -ldflags '-X github.com/stuft2/httpp/internal/cli.Version=v0.0.0' -o httpp ./cmd/httpp
+go build -ldflags '-X github.com/stuft2/knok/internal/cli.Version=v0.0.0' -o knok ./cmd/knok
 ```
 
 Local builds do not create or publish a release. GitHub Actions runs lint, test,

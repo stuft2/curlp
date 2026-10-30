@@ -37,6 +37,9 @@ func configFile(t *testing.T, host, auth string) string {
 func TestRequestCLI(t *testing.T) {
 	isolate(t)
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Header.Get("User-Agent") != "knok/"+Version {
+			t.Error("incorrect User-Agent")
+		}
 		if r.Method != "POST" || r.Header.Get("X-Test") != "yes" {
 			t.Error("incorrect request")
 		}
@@ -161,7 +164,7 @@ func TestInvalidArgumentsAndConfig(t *testing.T) {
 	}
 	for _, args := range [][]string{{"--help"}, {"--version"}} {
 		code, out, errOut := run(t, Runner{}, args...)
-		if code != 0 || out == "" || errOut != "" {
+		if code != 0 || !strings.Contains(out, "knok") || errOut != "" {
 			t.Fatal(code, out, errOut)
 		}
 	}

@@ -1,4 +1,4 @@
-// Package cli implements httpp's command-line interface.
+// Package cli implements knok's command-line interface.
 package cli
 
 import (
@@ -12,14 +12,14 @@ import (
 	"strings"
 	"time"
 
-	"github.com/stuft2/httpp/internal/auth"
-	"github.com/stuft2/httpp/internal/config"
+	"github.com/stuft2/knok/internal/auth"
+	"github.com/stuft2/knok/internal/config"
 )
 
 var Version = "v0-dev"
 
-const usage = `Usage: httpp [options] URL
-       httpp cache clear
+const usage = `Usage: knok [options] URL
+       knok cache clear
 
 HTTP requests with exact-host authentication from YAML configuration.
 
@@ -133,11 +133,11 @@ func parse(args []string) (options, error) {
 }
 
 // Runner permits callers to supply a configured transport (for example in offline tests).
-// Redirect and timeout policy are always controlled by httpp.
+// Redirect and timeout policy are always controlled by knok.
 type Runner struct{ Client *http.Client }
 
 func (r Runner) Run(ctx context.Context, args []string, in io.Reader, out, errOut io.Writer) int {
-	fail := func(code int, err error) int { fmt.Fprintln(errOut, "httpp:", err); return code }
+	fail := func(code int, err error) int { fmt.Fprintln(errOut, "knok:", err); return code }
 	if len(args) == 2 && args[0] == "cache" && args[1] == "clear" {
 		c, err := auth.DefaultCache()
 		if err != nil {
@@ -157,7 +157,7 @@ func (r Runner) Run(ctx context.Context, args []string, in io.Reader, out, errOu
 		return 0
 	}
 	if o.version {
-		fmt.Fprintln(out, "httpp", Version)
+		fmt.Fprintln(out, "knok", Version)
 		return 0
 	}
 	u, err := url.Parse(o.url)
@@ -207,7 +207,7 @@ func (r Runner) Run(ctx context.Context, args []string, in io.Reader, out, errOu
 	if err != nil {
 		return fail(2, fmt.Errorf("invalid request method or URL"))
 	}
-	req.Header.Set("User-Agent", "httpp/"+Version)
+	req.Header.Set("User-Agent", "knok/"+Version)
 	for _, h := range o.headers {
 		name, value, ok := strings.Cut(h, ":")
 		name = strings.TrimSpace(name)
@@ -241,9 +241,9 @@ func (r Runner) Run(ctx context.Context, args []string, in io.Reader, out, errOu
 		cache, err := auth.DefaultCache()
 		if err != nil {
 			cache = auth.Cache{}
-			fmt.Fprintln(errOut, "httpp: token cache unavailable")
+			fmt.Fprintln(errOut, "knok: token cache unavailable")
 		}
-		cache.Warn = func(s string) { fmt.Fprintln(errOut, "httpp:", s) }
+		cache.Warn = func(s string) { fmt.Fprintln(errOut, "knok:", s) }
 		if err := (auth.Provider{Client: &client, Cache: cache}).Apply(ctx, req, h.Auth); err != nil {
 			return fail(1, err)
 		}

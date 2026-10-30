@@ -6,7 +6,7 @@ Pull requests run the **CI / Lint, test, build** check on an Ubuntu runner:
 
 1. Require `gofmt` formatting, run `go vet ./...`, and check release-script syntax.
 2. Run `go test -race -timeout 120s ./...`.
-3. Build the CLI with `go build -trimpath -o httpp ./cmd/httpp`.
+3. Build the CLI with `go build -trimpath -o knok ./cmd/knok`.
 
 Pushes to `main` run the same reusable CI job inside the Release workflow before
 Release Please executes. CI can also be run manually using Actions > CI > Run
@@ -32,7 +32,7 @@ the `0.x` series until a deliberate transition to 1.0 is configured.
 3. On that merge, CI runs again, then Release Please creates the version tag and
    GitHub release.
 4. The same workflow checks out the exact release tag, cross-compiles the binaries,
-   stamps `httpp --version`, and attaches six archives plus `checksums.txt`.
+   stamps `knok --version`, and attaches six archives plus `checksums.txt`.
 
 Artifacts cover macOS (`darwin`), Linux, and Windows on amd64 and arm64. Unix
 archives are `.tar.gz`; Windows archives are `.zip`. Each includes the binary,
