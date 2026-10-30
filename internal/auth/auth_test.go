@@ -17,12 +17,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stuft2/httpp/internal/config"
+	"github.com/stuft2/knok/internal/config"
 )
 
 func testCache(t *testing.T) Cache {
 	t.Helper()
-	return Cache{Dir: filepath.Join(t.TempDir(), "httpp", "tokens")}
+	return Cache{Dir: filepath.Join(t.TempDir(), "knok", "tokens")}
 }
 func TestOAuthAcquisitionAndCache(t *testing.T) {
 	for _, method := range []string{"client_secret_basic", "client_secret_post"} {
@@ -234,7 +234,7 @@ func TestSecretCommand(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	t.Setenv("HTTPP_TEST_HELPER", "1")
+	t.Setenv("KNOK_TEST_HELPER", "1")
 	source := func(mode string) config.Secret {
 		return config.Secret{Command: []string{exe, "-test.run=^TestCredentialHelper$", "--", mode}}
 	}
@@ -264,7 +264,7 @@ func TestSecretCommand(t *testing.T) {
 	}
 }
 func TestCredentialHelper(t *testing.T) {
-	if os.Getenv("HTTPP_TEST_HELPER") != "1" {
+	if os.Getenv("KNOK_TEST_HELPER") != "1" {
 		return
 	}
 	switch os.Args[len(os.Args)-1] {
@@ -326,7 +326,7 @@ func TestOAuthClientIDReferences(t *testing.T) {
 	for _, method := range []string{"client_secret_basic", "client_secret_post"} {
 		for _, source := range []string{"env", "command"} {
 			t.Run(method+"/"+source, func(t *testing.T) {
-				t.Setenv("HTTPP_TEST_HELPER", "1")
+				t.Setenv("KNOK_TEST_HELPER", "1")
 				t.Setenv("RESOLVED_ID", "source app+:")
 				t.Setenv("CLIENT_SECRET", "client-secret")
 				ref := config.Secret{Env: "RESOLVED_ID"}

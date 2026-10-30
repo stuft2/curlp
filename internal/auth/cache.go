@@ -12,7 +12,7 @@ import (
 	"runtime"
 	"time"
 
-	"github.com/stuft2/httpp/internal/config"
+	"github.com/stuft2/knok/internal/config"
 )
 
 type Cache struct {
@@ -30,7 +30,7 @@ func DefaultCache() (Cache, error) {
 	if err != nil {
 		return Cache{}, err
 	}
-	return Cache{Dir: filepath.Join(base, "httpp", "tokens")}, nil
+	return Cache{Dir: filepath.Join(base, "knok", "tokens")}, nil
 }
 func (c Cache) warning() {
 	if c.Warn != nil {

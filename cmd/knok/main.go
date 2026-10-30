@@ -5,7 +5,7 @@ import (
 	"os"
 	"os/signal"
 
-	"github.com/stuft2/httpp/internal/cli"
+	"github.com/stuft2/knok/internal/cli"
 )
 
 func main() {

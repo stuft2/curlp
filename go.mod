@@ -1,4 +1,4 @@
-module github.com/stuft2/httpp
+module github.com/stuft2/knok
 
 go 1.27.0
 

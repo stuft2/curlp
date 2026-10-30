@@ -1,4 +1,4 @@
-// Package config reads and validates httpp's host authentication configuration.
+// Package config reads and validates knok's host authentication configuration.
 package config
 
 import (
@@ -57,13 +57,13 @@ func DefaultPath() (string, error) {
 		if !filepath.IsAbs(base) {
 			return "", fmt.Errorf("XDG_CONFIG_HOME must be absolute")
 		}
-		return filepath.Join(base, "httpp", "config.yaml"), nil
+		return filepath.Join(base, "knok", "config.yaml"), nil
 	}
 	home, err := os.UserHomeDir()
 	if err != nil {
 		return "", err
 	}
-	return filepath.Join(home, ".config", "httpp", "config.yaml"), nil
+	return filepath.Join(home, ".config", "knok", "config.yaml"), nil
 }
 
 func Load(path string, explicit bool) (Config, error) {

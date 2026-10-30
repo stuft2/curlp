@@ -1,9 +1,9 @@
-# Installing httpp
+# Installing knok
 
 ## Choose an archive
 
 Prebuilt binaries do not require Go. Download from the
-[latest release](https://github.com/stuft2/httpp/releases/latest).
+[latest release](https://github.com/stuft2/knok/releases/latest).
 
 | System | CPU | Archive suffix |
 | ------ | --- | -------------- |
@@ -27,8 +27,8 @@ use `darwin_arm64` on Apple Silicon or `linux_amd64` on an x86-64 Linux machine.
 ```sh
 release_version=v0.1.0
 release_platform=darwin_arm64
-release_archive="httpp_${release_version}_${release_platform}.tar.gz"
-release_base="https://github.com/stuft2/httpp/releases/download/$release_version"
+release_archive="knok_${release_version}_${release_platform}.tar.gz"
+release_base="https://github.com/stuft2/knok/releases/download/$release_version"
 install_tmp="$(mktemp -d)"
 
 curl -fL "$release_base/$release_archive" -o "$install_tmp/$release_archive"
@@ -47,14 +47,14 @@ curl -fL "$release_base/checksums.txt" -o "$install_tmp/checksums.txt"
 ) &&
 tar -xzf "$install_tmp/$release_archive" -C "$install_tmp" &&
 mkdir -p "$HOME/.local/bin" &&
-install -m 0755 "$install_tmp/httpp" "$HOME/.local/bin/httpp"
+install -m 0755 "$install_tmp/knok" "$HOME/.local/bin/knok"
 ```
 
 After the checksum and install commands succeed:
 
 ```sh
 export PATH="$HOME/.local/bin:$PATH"
-httpp --version
+knok --version
 ```
 
 Add `export PATH="$HOME/.local/bin:$PATH"` to `~/.zshrc` for Zsh or `~/.bashrc`
@@ -68,21 +68,21 @@ Download the matching `.zip`, verify its SHA-256 with `Get-FileHash`, and compar
 it with the matching filename in the release's `checksums.txt`:
 
 ```powershell
-Get-FileHash .\httpp_v0.1.0_windows_amd64.zip -Algorithm SHA256
+Get-FileHash .\knok_v0.1.0_windows_amd64.zip -Algorithm SHA256
 ```
 
 Extract the archive. From the extracted directory, install into a user-owned
 folder:
 
 ```powershell
-$HttppInstallDir = Join-Path $env:LOCALAPPDATA 'Programs\httpp'
-New-Item -ItemType Directory -Force -Path $HttppInstallDir | Out-Null
-Copy-Item .\httpp.exe (Join-Path $HttppInstallDir 'httpp.exe') -Force
-$env:Path = "$HttppInstallDir;$env:Path"
-httpp --version
+$KnokInstallDir = Join-Path $env:LOCALAPPDATA 'Programs\knok'
+New-Item -ItemType Directory -Force -Path $KnokInstallDir | Out-Null
+Copy-Item .\knok.exe (Join-Path $KnokInstallDir 'knok.exe') -Force
+$env:Path = "$KnokInstallDir;$env:Path"
+knok --version
 ```
 
-For future terminals, add `%LOCALAPPDATA%\Programs\httpp` to the **user** `Path`
+For future terminals, add `%LOCALAPPDATA%\Programs\knok` to the **user** `Path`
 through **Edit environment variables for your account**, then reopen your
 terminal. Persistent OAuth token caching is currently disabled on Windows;
 requests can still acquire tokens for the current invocation.
@@ -92,12 +92,12 @@ requests can still acquire tokens for the current invocation.
 With Go 1.27 or newer:
 
 ```sh
-go install github.com/stuft2/httpp/cmd/httpp@latest
+go install github.com/stuft2/knok/cmd/knok@latest
 ```
 
 Find the install directory with `go env GOBIN`. If that is empty, use the `bin`
 directory under `go env GOPATH`. Put that directory on `PATH`, then verify the
-command is available with `httpp --help`.
+command is available with `knok --help`.
 
 Use `@v0.1.0` to pin that version or `@main` for the development branch. Go
 installations currently report the default `v0-dev` version label; downloaded
@@ -110,7 +110,7 @@ See [configuration and authentication](configuration.md) to set up host entries
 and credential sources. An unmatched host can be called without configuration:
 
 ```sh
-httpp https://example.com
+knok https://example.com
 ```
 
 To upgrade, repeat the same installation method with a newer release. Existing

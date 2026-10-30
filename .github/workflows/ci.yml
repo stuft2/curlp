@@ -38,4 +38,4 @@ jobs:
       - name: Test
         run: go test -race -timeout 120s ./...
       - name: Build
-        run: go build -trimpath -o httpp ./cmd/httpp
+        run: go build -trimpath -o knok ./cmd/knok
